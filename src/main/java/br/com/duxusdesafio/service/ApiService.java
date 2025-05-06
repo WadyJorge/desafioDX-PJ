@@ -2,6 +2,10 @@ package br.com.duxusdesafio.service;
 
 import br.com.duxusdesafio.model.Integrante;
 import br.com.duxusdesafio.model.Time;
+import br.com.duxusdesafio.repository.IntegranteRepository;
+import br.com.duxusdesafio.repository.TimeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -11,9 +15,33 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Service que possuirá as regras de negócio para o processamento dos dados solicitados no desafio!
+ * Service que possui as regras de negócio para o processamento dos dados solicitados no desafio.
+ * Além disso, realiza o cadastro de integrantes e times.
  */
+@Service
 public class ApiService {
+
+    @Autowired
+    private IntegranteRepository integranteRepository;
+
+    @Autowired
+    private TimeRepository timeRepository;
+
+    /**
+     * Vai cadastrar um novo integrante no sistema.
+     */
+    public Integrante cadastrarIntegrante(Integrante integrante) {
+        // Salvando o integrante no banco de dados
+        return integranteRepository.save(integrante);
+    }
+
+    /**
+     * Vai cadastrar um novo time no sistema.
+     */
+    public Time cadastrarTime(Time time) {
+        // Salvando o time no banco de dados
+        return timeRepository.save(time);
+    }
 
     /**
      * Vai retornar um Time, com a composição do time daquela data
