@@ -1,5 +1,7 @@
 package br.com.duxusdesafio.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,9 +19,16 @@ public class Time {
     @Column(name = "data", nullable = false)
     private LocalDate data;
 
-    // Relacionamento com a lista de integrantes
-    @OneToMany(mappedBy = "time", cascade = CascadeType.ALL)
-    private List<Integrante> integrantes = new ArrayList<>();
+    @OneToMany(mappedBy = "time", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ComposicaoTime> composicoes = new ArrayList<>();
+
+    public Time() {}
+
+    public Time(LocalDate data, List<ComposicaoTime> composicoes) {
+        this.data = data;
+        this.composicoes = composicoes;
+    }
 
     public Long getId() {
         return id;
@@ -37,11 +46,11 @@ public class Time {
         this.data = data;
     }
 
-    public List<Integrante> getIntegrantes() {
-        return integrantes;
+    public List<ComposicaoTime> getComposicoes() {
+        return composicoes;
     }
 
-    public void setIntegrantes(List<Integrante> integrantes) {
-        this.integrantes = integrantes;
+    public void setComposicoes(List<ComposicaoTime> composicoes) {
+        this.composicoes = composicoes;
     }
 }

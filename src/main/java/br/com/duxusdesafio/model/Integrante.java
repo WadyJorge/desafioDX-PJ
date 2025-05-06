@@ -20,6 +20,14 @@ public class Integrante {
     @Column(name = "funcao", nullable = false)
     private String funcao;
 
+    public Integrante() {}
+
+    public Integrante(String franquia, String nome, String funcao) {
+        this.franquia = franquia;
+        this.nome = nome;
+        this.funcao = funcao;
+    }
+
     public Long getId() {
         return id;
     }

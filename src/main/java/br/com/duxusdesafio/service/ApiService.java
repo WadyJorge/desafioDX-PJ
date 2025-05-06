@@ -1,17 +1,17 @@
 package br.com.duxusdesafio.service;
 
+import br.com.duxusdesafio.model.ComposicaoTime;
 import br.com.duxusdesafio.model.Integrante;
 import br.com.duxusdesafio.model.Time;
+import br.com.duxusdesafio.repository.ComposicaoTimeRepository;
 import br.com.duxusdesafio.repository.IntegranteRepository;
 import br.com.duxusdesafio.repository.TimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -27,32 +27,73 @@ public class ApiService {
     @Autowired
     private TimeRepository timeRepository;
 
+    @Autowired
+    private ComposicaoTimeRepository composicaoTimeRepository;
+
     /**
      * Vai cadastrar um novo integrante no sistema.
      */
     public Integrante cadastrarIntegrante(Integrante integrante) {
-        // Salvando o integrante no banco de dados
+        // Verifica se já existe um integrante com o mesmo nome
+        Optional<Integrante> existente = integranteRepository.findByNome(integrante.getNome());
+
+        if (existente.isPresent()) {
+            return existente.get(); // Retorna o integrante existente
+        }
+
+        // Salva o integrante novo no banco de dados
         return integranteRepository.save(integrante);
     }
 
     /**
-     * Vai cadastrar um novo time no sistema.
+     * Vai cadastrar um novo time no sistema com a lista de integrantes e a data.
      */
-    public Time cadastrarTime(Time time) {
-        // Salvando o time no banco de dados
-        return timeRepository.save(time);
+    @Transactional
+    public Time cadastrarTime(List<Integrante> integrantes, LocalDate data) {
+        Optional<Time> timeExistente = timeRepository.findByData(data);
+
+        List<Integrante> integrantesSalvos = new ArrayList<>();
+
+        for (Integrante integrante : integrantes) {
+            Optional<Integrante> existente = integranteRepository.findByNome(integrante.getNome());
+            if (existente.isPresent()) {
+                integrantesSalvos.add(existente.get());
+            } else {
+                integrantesSalvos.add(integranteRepository.save(integrante));
+            }
+        }
+
+        Time time;
+        if (timeExistente.isPresent()) {
+            time = timeExistente.get();
+            composicaoTimeRepository.deleteByTimeId(time.getId());
+        } else {
+            time = new Time();
+            time.setData(data);
+            time = timeRepository.save(time);
+        }
+
+        List<ComposicaoTime> composicoes = new ArrayList<>();
+
+        for (Integrante integrante : integrantesSalvos) {
+            ComposicaoTime composicao = new ComposicaoTime(time, integrante);
+            composicaoTimeRepository.save(composicao);
+            composicoes.add(composicao); // adiciona à lista local
+        }
+
+        time.setComposicoes(composicoes); // seta no objeto Time retornado
+
+        return time;
     }
 
     /**
      * Vai retornar um Time, com a composição do time daquela data
      */
     public Time timeDaData(LocalDate data, List<Time> todosOsTimes) {
-        for (Time time : todosOsTimes) {
-            if (time.getData().equals(data)) {
-                return time;
-            }
-        }
-        return null;
+        return todosOsTimes.stream()
+                .filter(time -> time.getData().equals(data))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -65,7 +106,8 @@ public class ApiService {
         for (Time time : todosOsTimes) {
             if ((dataInicial == null || !time.getData().isBefore(dataInicial)) &&
                     (dataFinal == null || !time.getData().isAfter(dataFinal))) {
-                for (Integrante integrante : time.getIntegrantes()) {
+                for (ComposicaoTime composicao : time.getComposicoes()) {
+                    Integrante integrante = composicao.getIntegrante();
                     contador.put(integrante, contador.getOrDefault(integrante, 0L) + 1);
                 }
             }
@@ -82,24 +124,30 @@ public class ApiService {
      * dentro do período
      */
     public List<String> integrantesDoTimeMaisComum(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
-        Map<List<Integrante>, Long> timeCount = new HashMap<>();
+        Map<List<String>, Integer> composicaoCounter = new HashMap<>();
 
-        for (Time time : todosOsTimes) {
-            if ((dataInicial == null || !time.getData().isBefore(dataInicial)) &&
-                    (dataFinal == null || !time.getData().isAfter(dataFinal))) {
-                List<Integrante> integrantes = time.getIntegrantes();
-                timeCount.put(integrantes, timeCount.getOrDefault(integrantes, 0L) + 1);
-            }
+        // Filtrar os times pelo período
+        List<Time> timesDoPeriodo = todosOsTimes.stream()
+                .filter(time -> (dataInicial == null || !time.getData().isBefore(dataInicial)) &&
+                        (dataFinal == null || !time.getData().isAfter(dataFinal)))
+                .collect(Collectors.toList());
+
+        // Para cada time, criar uma lista de nomes de integrantes ordenada
+        for (Time time : timesDoPeriodo) {
+            List<String> nomesIntegrantes = time.getComposicoes().stream()
+                    .map(composicao -> composicao.getIntegrante().getNome())
+                    .sorted() // Importante ordenar para comparação correta
+                    .collect(Collectors.toList());
+
+            // Contar ocorrências dessa composição
+            composicaoCounter.put(nomesIntegrantes, composicaoCounter.getOrDefault(nomesIntegrantes, 0) + 1);
         }
 
-        List<Integrante> timeMaisComum = timeCount.entrySet().stream()
+        // Encontrar a composição mais comum
+        return composicaoCounter.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(Collections.emptyList());
-
-        return timeMaisComum.stream()
-                .map(Integrante::getNome)
-                .collect(Collectors.toList());
     }
 
     /**
@@ -111,8 +159,8 @@ public class ApiService {
         for (Time time : todosOsTimes) {
             if ((dataInicial == null || !time.getData().isBefore(dataInicial)) &&
                     (dataFinal == null || !time.getData().isAfter(dataFinal))) {
-                for (Integrante integrante : time.getIntegrantes()) {
-                    String funcao = integrante.getFuncao();
+                for (ComposicaoTime composicao : time.getComposicoes()) {
+                    String funcao = composicao.getIntegrante().getFuncao();
                     funcaoCount.put(funcao, funcaoCount.getOrDefault(funcao, 0L) + 1);
                 }
             }
@@ -133,8 +181,8 @@ public class ApiService {
         for (Time time : todosOsTimes) {
             if ((dataInicial == null || !time.getData().isBefore(dataInicial)) &&
                     (dataFinal == null || !time.getData().isAfter(dataFinal))) {
-                for (Integrante integrante : time.getIntegrantes()) {
-                    String franquia = integrante.getFranquia();
+                for (ComposicaoTime composicao : time.getComposicoes()) {
+                    String franquia = composicao.getIntegrante().getFranquia();
                     franquiaCount.put(franquia, franquiaCount.getOrDefault(franquia, 0L) + 1);
                 }
             }
@@ -155,8 +203,8 @@ public class ApiService {
         for (Time time : todosOsTimes) {
             if ((dataInicial == null || !time.getData().isBefore(dataInicial)) &&
                     (dataFinal == null || !time.getData().isAfter(dataFinal))) {
-                for (Integrante integrante : time.getIntegrantes()) {
-                    String franquia = integrante.getFranquia();
+                for (ComposicaoTime composicao : time.getComposicoes()) {
+                    String franquia = composicao.getIntegrante().getFranquia();
                     franquiaCount.put(franquia, franquiaCount.getOrDefault(franquia, 0L) + 1);
                 }
             }
@@ -174,8 +222,8 @@ public class ApiService {
         for (Time time : todosOsTimes) {
             if ((dataInicial == null || !time.getData().isBefore(dataInicial)) &&
                     (dataFinal == null || !time.getData().isAfter(dataFinal))) {
-                for (Integrante integrante : time.getIntegrantes()) {
-                    String funcao = integrante.getFuncao();
+                for (ComposicaoTime composicao : time.getComposicoes()) {
+                    String funcao = composicao.getIntegrante().getFuncao();
                     funcaoCount.put(funcao, funcaoCount.getOrDefault(funcao, 0L) + 1);
                 }
             }
