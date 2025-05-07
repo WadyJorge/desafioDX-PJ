@@ -2,7 +2,6 @@ package br.com.duxusdesafio.controller;
 
 import br.com.duxusdesafio.model.Integrante;
 import br.com.duxusdesafio.model.Time;
-import br.com.duxusdesafio.repository.ComposicaoTimeRepository;
 import br.com.duxusdesafio.repository.IntegranteRepository;
 import br.com.duxusdesafio.repository.TimeRepository;
 import br.com.duxusdesafio.service.ApiService;
@@ -31,9 +30,6 @@ public class ApiController {
     @Autowired
     private TimeRepository timeRepository;
 
-    @Autowired
-    private ComposicaoTimeRepository composicaoTimeRepository;
-
     // Endpoint para cadastrar um integrante
     @PostMapping("/integrante")
     public ResponseEntity<Integrante> cadastrarIntegrante(@RequestBody Integrante integrante) {
@@ -52,17 +48,15 @@ public class ApiController {
     public ResponseEntity<Time> cadastrarTime(@RequestBody Map<String, Object> request) {
         List<Map<String, String>> integrantesMap = (List<Map<String, String>>) request.get("integrantes");
 
-        // Verifica se a data foi fornecida no request. Caso contrário, usa a data atual.
         String dataStr = (String) request.get("data");
         LocalDate data = (dataStr != null && !dataStr.isEmpty()) ? LocalDate.parse(dataStr) : LocalDate.now();
 
-        // Primeiro persista os integrantes individualmente
         List<Integrante> integrantes = integrantesMap.stream()
                 .map(map -> {
                     String idStr = map.get("id");
                     if (idStr != null) {
                         Long id = Long.parseLong(idStr);
-                        return integranteRepository.findById(id).orElseThrow(() -> new RuntimeException("Integrante não encontrado!" + id));
+                        return integranteRepository.findById(id).orElseThrow(() -> new RuntimeException("Integrante não encontrado!"));
                     } else {
                         return apiService.cadastrarIntegrante(new Integrante(
                                 map.get("franquia"),
@@ -116,23 +110,19 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> getTimeDaData(
             @RequestParam("data") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
 
-        // Buscar todos os times do banco para processar
         List<Time> todosTimes = timeRepository.findAll();
 
-        // Chama o serviço para obter o time na data específica
         Time time = apiService.timeDaData(data, todosTimes);
 
         if (time == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Formatar a resposta conforme esperado
         Map<String, Object> response = new HashMap<>();
-        response.put("data", time.getData().toString());  // Retorna a data como string no formato yyyy-MM-dd
+        response.put("data", time.getData().toString());
 
-        // Acessa corretamente o nome do integrante
         List<String> integrantesNomes = time.getComposicoes().stream()
-                .map(composicao -> composicao.getIntegrante().getNome()) // Certifique-se de pegar o nome do integrante
+                .map(composicao -> composicao.getIntegrante().getNome())
                 .collect(Collectors.toList());
 
         response.put("integrantes", integrantesNomes);
@@ -168,7 +158,6 @@ public class ApiController {
             @RequestParam(value = "dataFinal", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
 
-        // Buscar todos os times do banco para processar
         List<Time> todosTimes = timeRepository.findAll();
 
         List<String> integrantes = apiService.integrantesDoTimeMaisComum(dataInicial, dataFinal, todosTimes);
@@ -233,7 +222,6 @@ public class ApiController {
             @RequestParam(value = "dataFinal", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
 
-        // Buscar todos os times do banco para processar
         List<Time> todosTimes = timeRepository.findAll();
 
         Map<String, Long> franquiaCount = apiService.contagemPorFranquia(dataInicial, dataFinal, todosTimes);
@@ -251,13 +239,10 @@ public class ApiController {
             @RequestParam(value = "dataFinal", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
 
-        // Buscar todos os times do banco para processar
         List<Time> todosTimes = timeRepository.findAll();
 
         Map<String, Long> funcaoCount = apiService.contagemPorFuncao(dataInicial, dataFinal, todosTimes);
 
         return ResponseEntity.ok(funcaoCount);
     }
-
-
 }

@@ -22,31 +22,23 @@ import java.util.stream.Collectors;
 public class ApiService {
 
     @Autowired
+    private ComposicaoTimeRepository composicaoTimeRepository;
+
+    @Autowired
     private IntegranteRepository integranteRepository;
 
     @Autowired
     private TimeRepository timeRepository;
 
-    @Autowired
-    private ComposicaoTimeRepository composicaoTimeRepository;
-
     /**
-     * Vai cadastrar um novo integrante no sistema.
+     * Cadastra um novo integrante no sistema.
      */
     public Integrante cadastrarIntegrante(Integrante integrante) {
-        // Verifica se já existe um integrante com o mesmo nome
-        Optional<Integrante> existente = integranteRepository.findByNome(integrante.getNome());
-
-        if (existente.isPresent()) {
-            return existente.get(); // Retorna o integrante existente
-        }
-
-        // Salva o integrante novo no banco de dados
         return integranteRepository.save(integrante);
     }
 
     /**
-     * Vai cadastrar um novo time no sistema com a lista de integrantes e a data.
+     * Cadastra um novo time no sistema com a lista de integrantes e a data.
      */
     @Transactional
     public Time cadastrarTime(List<Integrante> integrantes, LocalDate data) {
@@ -55,9 +47,10 @@ public class ApiService {
         List<Integrante> integrantesSalvos = new ArrayList<>();
 
         for (Integrante integrante : integrantes) {
-            Optional<Integrante> existente = integranteRepository.findByNome(integrante.getNome());
-            if (existente.isPresent()) {
-                integrantesSalvos.add(existente.get());
+            List<Integrante> existentes = integranteRepository.findByNome(integrante.getNome());
+
+            if (!existentes.isEmpty()) {
+                integrantesSalvos.add(existentes.get(0));
             } else {
                 integrantesSalvos.add(integranteRepository.save(integrante));
             }
@@ -78,16 +71,16 @@ public class ApiService {
         for (Integrante integrante : integrantesSalvos) {
             ComposicaoTime composicao = new ComposicaoTime(time, integrante);
             composicaoTimeRepository.save(composicao);
-            composicoes.add(composicao); // adiciona à lista local
+            composicoes.add(composicao);
         }
 
-        time.setComposicoes(composicoes); // seta no objeto Time retornado
+        time.setComposicoes(composicoes);
 
         return time;
     }
 
     /**
-     * Vai retornar um Time, com a composição do time daquela data
+     * Retorna um Time, com a composição do time daquela data
      */
     public Time timeDaData(LocalDate data, List<Time> todosOsTimes) {
         System.out.println("Data recebida: " + data);
@@ -101,7 +94,7 @@ public class ApiService {
     }
 
     /**
-     * Vai retornar o integrante que estiver presente na maior quantidade de times
+     * Retorna o integrante que estiver presente na maior quantidade de times
      * dentro do período
      */
     public Integrante integranteMaisUsado(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
@@ -120,34 +113,33 @@ public class ApiService {
         return contador.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .orElse(null);  // Retorna o integrante mais usado
+                .orElse(null);
     }
 
     /**
-     * Vai retornar uma lista com os nomes dos integrantes do time mais comum
+     * Retorna uma lista com os nomes dos integrantes do time mais comum
      * dentro do período
      */
     public List<String> integrantesDoTimeMaisComum(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
         Map<List<String>, Integer> composicaoCounter = new HashMap<>();
 
-        // Filtrar os times pelo período
+        // Filtra os times pelo período
         List<Time> timesDoPeriodo = todosOsTimes.stream()
                 .filter(time -> (dataInicial == null || !time.getData().isBefore(dataInicial)) &&
                         (dataFinal == null || !time.getData().isAfter(dataFinal)))
                 .collect(Collectors.toList());
 
-        // Para cada time, criar uma lista de nomes de integrantes ordenada
+        // Para cada time, cria uma lista de nomes de integrantes ordenada
         for (Time time : timesDoPeriodo) {
             List<String> nomesIntegrantes = time.getComposicoes().stream()
                     .map(composicao -> composicao.getIntegrante().getNome())
-                    .sorted() // Importante ordenar para comparação correta
+                    .sorted()
                     .collect(Collectors.toList());
 
-            // Contar ocorrências dessa composição
             composicaoCounter.put(nomesIntegrantes, composicaoCounter.getOrDefault(nomesIntegrantes, 0) + 1);
         }
 
-        // Encontrar a composição mais comum
+        // Encontra a composição mais comum
         return composicaoCounter.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
@@ -155,7 +147,7 @@ public class ApiService {
     }
 
     /**
-     * Vai retornar a função mais comum nos times dentro do período
+     * Retorna a função mais comum nos times dentro do período
      */
     public String funcaoMaisComum(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
         Map<String, Long> funcaoCount = new HashMap<>();
@@ -177,7 +169,7 @@ public class ApiService {
     }
 
     /**
-     * Vai retornar o nome da Franquia mais comum nos times dentro do período
+     * Retorna o nome da Franquia mais comum nos times dentro do período
      */
     public String franquiaMaisFamosa(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
         Map<String, Long> franquiaCount = new HashMap<>();
@@ -199,7 +191,7 @@ public class ApiService {
     }
 
     /**
-     * Vai retornar o número (quantidade) de Franquias dentro do período
+     * Retorna o número (quantidade) de Franquias dentro do período
      */
     public Map<String, Long> contagemPorFranquia(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
         Map<String, Long> franquiaCount = new HashMap<>();
@@ -218,7 +210,7 @@ public class ApiService {
     }
 
     /**
-     * Vai retornar o número (quantidade) de Funções dentro do período
+     * Retorna o número (quantidade) de Funções dentro do período
      */
     public Map<String, Long> contagemPorFuncao(LocalDate dataInicial, LocalDate dataFinal, List<Time> todosOsTimes) {
         Map<String, Long> funcaoCount = new HashMap<>();

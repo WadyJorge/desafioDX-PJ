@@ -4,7 +4,21 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fd93feb4-5362-403e-b260-57fc48d743a5" name="Changes" comment="" />
+    <list default="true" id="fd93feb4-5362-403e-b260-57fc48d743a5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/DuxusdesafioApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/DuxusDesafioApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/ServletInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/ServletInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/controller/ApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/controller/ApiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/repository/IntegranteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/repository/IntegranteRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/service/ApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/com/duxusdesafio/service/ApiService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/cadastro-integrante.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/cadastro-integrante.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/consultas.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/consultas.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/montar-time.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/montar-time.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,10 +35,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 6
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="2wjCy0MQ30cUbaCdDZYKMYDti94" />
   <component name="ProjectViewState">
     <option name="abbreviatePackageNames" value="true" />
@@ -35,8 +49,14 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.DuxusDesafioApplication.executor": "Run",
+    "Spring Boot.DuxusdesafioApplication.executor": "Run",
     "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "C:/Users/wbeli/OneDrive/Documentos/Git/desafioDX-PJ",
@@ -62,10 +82,10 @@
       <option name="filePath" />
       <method v="2" />
     </configuration>
-    <configuration name="DuxusdesafioApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <configuration name="DuxusDesafioApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
       <module name="duxusdesafio" />
-      <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.duxusdesafio.DuxusdesafioApplication" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.duxusdesafio.DuxusDesafioApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -87,7 +107,8 @@
       <option name="presentableId" value="Default" />
       <updated>1737837266590</updated>
       <workItem from="1737837267640" duration="163000" />
-      <workItem from="1746545849939" duration="4083000" />
+      <workItem from="1746545849939" duration="22308000" />
+      <workItem from="1746623588766" duration="12925000" />
     </task>
     <servers />
   </component>
