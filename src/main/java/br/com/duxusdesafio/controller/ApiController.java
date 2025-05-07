@@ -3,6 +3,7 @@ package br.com.duxusdesafio.controller;
 import br.com.duxusdesafio.model.Integrante;
 import br.com.duxusdesafio.model.Time;
 import br.com.duxusdesafio.repository.ComposicaoTimeRepository;
+import br.com.duxusdesafio.repository.IntegranteRepository;
 import br.com.duxusdesafio.repository.TimeRepository;
 import br.com.duxusdesafio.service.ApiService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class ApiController {
     private ApiService apiService;
 
     @Autowired
+    private IntegranteRepository integranteRepository;
+
+    @Autowired
     private TimeRepository timeRepository;
 
     @Autowired
@@ -37,27 +41,72 @@ public class ApiController {
         return ResponseEntity.ok(novoIntegrante);
     }
 
+    // Endpoint para retornar todos os integrantes cadastrados.
+    @GetMapping("/integrantes")
+    public ResponseEntity<List<Integrante>> listarIntegrantes() {
+        return ResponseEntity.ok(integranteRepository.findAll());
+    }
+
     // Endpoint para cadastrar um time
     @PostMapping("/time")
     public ResponseEntity<Time> cadastrarTime(@RequestBody Map<String, Object> request) {
         List<Map<String, String>> integrantesMap = (List<Map<String, String>>) request.get("integrantes");
+
+        // Verifica se a data foi fornecida no request. Caso contrário, usa a data atual.
         String dataStr = (String) request.get("data");
-        LocalDate data = LocalDate.parse(dataStr);
+        LocalDate data = (dataStr != null && !dataStr.isEmpty()) ? LocalDate.parse(dataStr) : LocalDate.now();
 
         // Primeiro persista os integrantes individualmente
         List<Integrante> integrantes = integrantesMap.stream()
                 .map(map -> {
-                    Integrante integrante = new Integrante(
-                            map.get("franquia"),
-                            map.get("nome"),
-                            map.get("funcao"));
-                    // Salva cada integrante no banco antes de criar o time
-                    return apiService.cadastrarIntegrante(integrante);
+                    String idStr = map.get("id");
+                    if (idStr != null) {
+                        Long id = Long.parseLong(idStr);
+                        return integranteRepository.findById(id).orElseThrow(() -> new RuntimeException("Integrante não encontrado!" + id));
+                    } else {
+                        return apiService.cadastrarIntegrante(new Integrante(
+                                map.get("franquia"),
+                                map.get("nome"),
+                                map.get("funcao")
+                        ));
+                    }
                 })
                 .collect(Collectors.toList());
 
         Time novoTime = apiService.cadastrarTime(integrantes, data);
         return ResponseEntity.ok(novoTime);
+    }
+
+    /**
+     * Endpoint para retornar todos os times cadastrados com seus integrantes.
+     */
+    @GetMapping("/times")
+    public ResponseEntity<List<Map<String, Object>>> listarTodosTimes() {
+        List<Time> todosTimes = timeRepository.findAll();
+
+        List<Map<String, Object>> response = todosTimes.stream()
+                .map(time -> {
+                    Map<String, Object> timeMap = new HashMap<>();
+                    timeMap.put("id", time.getId());
+                    timeMap.put("data", time.getData().toString());
+
+                    List<Map<String, String>> integrantes = time.getComposicoes().stream()
+                            .map(composicao -> {
+                                Map<String, String> integranteMap = new HashMap<>();
+                                integranteMap.put("id", composicao.getIntegrante().getId().toString());
+                                integranteMap.put("nome", composicao.getIntegrante().getNome());
+                                integranteMap.put("franquia", composicao.getIntegrante().getFranquia());
+                                integranteMap.put("funcao", composicao.getIntegrante().getFuncao());
+                                return integranteMap;
+                            })
+                            .collect(Collectors.toList());
+
+                    timeMap.put("integrantes", integrantes);
+                    return timeMap;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -209,4 +258,6 @@ public class ApiController {
 
         return ResponseEntity.ok(funcaoCount);
     }
+
+
 }

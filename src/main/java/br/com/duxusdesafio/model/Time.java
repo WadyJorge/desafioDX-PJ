@@ -19,7 +19,7 @@ public class Time {
     @Column(name = "data", nullable = false)
     private LocalDate data;
 
-    @OneToMany(mappedBy = "time", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "time", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<ComposicaoTime> composicoes = new ArrayList<>();
 

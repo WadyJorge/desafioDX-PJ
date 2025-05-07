@@ -90,6 +90,10 @@ public class ApiService {
      * Vai retornar um Time, com a composição do time daquela data
      */
     public Time timeDaData(LocalDate data, List<Time> todosOsTimes) {
+        System.out.println("Data recebida: " + data);
+        for (Time time : todosOsTimes) {
+            System.out.println("Data do time no banco: " + time.getData());
+        }
         return todosOsTimes.stream()
                 .filter(time -> time.getData().equals(data))
                 .findFirst()
